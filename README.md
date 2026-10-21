@@ -1,6 +1,6 @@
 # DevMaturity Live
 
-<!-- deploy-trigger: 2026-10-21 -->
+<!-- deploy-trigger: 2026-10-21-02 -->
 
 SPA estática (React + Vite + Tailwind) para evaluar en vivo la madurez técnica
 de un equipo, estilo Mentimeter: la audiencia se conecta por QR, responde un

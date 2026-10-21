@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-image: radial-gradient(circle at top, rgba(79, 109, 245, 0.12), transparent 55%);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #272f48;
+  border-radius: 999px;
+}
+
+.tap-highlight-none {
+  -webkit-tap-highlight-color: transparent;
+}

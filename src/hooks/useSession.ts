@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import { ActivityState, SessionRow } from '@/types/domain';
+import { ActivityState, SessionRow, TrackType } from '@/types/domain';
 import { generateSessionCode, normalizeSessionCode } from '@/utils/sessionCode';
 
 export interface UseSessionResult {
@@ -84,14 +84,13 @@ export async function createSession(moderatorUserId: string): Promise<SessionRow
     const code = generateSessionCode();
     const { data, error } = await supabase
       .from('sessions')
-      .insert({ code, moderator_user_id: moderatorUserId, current_activity: 'waiting' })
+      .insert({ code, moderator_user_id: moderatorUserId, current_activity: 'waiting', track: 'devops' })
       .select('*')
       .single();
 
     if (!error && data) return data as SessionRow;
 
     lastError = error;
-    // Colisión de código único (muy improbable, 32^4 combinaciones): reintenta.
     attempt += 1;
   }
 
@@ -105,4 +104,9 @@ export async function createSession(moderatorUserId: string): Promise<SessionRow
 export async function updateSessionActivity(sessionId: string, activity: ActivityState): Promise<void> {
   const { error } = await supabase.from('sessions').update({ current_activity: activity }).eq('id', sessionId);
   if (error) throw new Error(`No se pudo cambiar la actividad: ${error.message}`);
+}
+
+export async function updateSessionTrack(sessionId: string, track: TrackType): Promise<void> {
+  const { error } = await supabase.from('sessions').update({ track }).eq('id', sessionId);
+  if (error) throw new Error(`No se pudo cambiar el track: ${error.message}`);
 }

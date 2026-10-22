@@ -1,5 +1,12 @@
 import { supabase } from '@/lib/supabase';
-import { AssessmentResponseRow, IcebreakerResponseRow, MaturityLevel, ParticipantRole, PracticeKey } from '@/types/domain';
+import {
+  AssessmentResponseRow,
+  IcebreakerResponseRow,
+  MaturityLevel,
+  ParticipantRole,
+  PracticeKey,
+  TrackType,
+} from '@/types/domain';
 
 export async function joinSession(
   sessionId: string,
@@ -42,12 +49,13 @@ export async function submitIcebreakerVote(
   participantId: string,
   userId: string,
   score: 1 | 2 | 3 | 4 | 5,
+  track: TrackType,
 ): Promise<IcebreakerResponseRow> {
   const { data, error } = await supabase
     .from('icebreaker_responses')
     .upsert(
-      { session_id: sessionId, participant_id: participantId, user_id: userId, score },
-      { onConflict: 'session_id,user_id' },
+      { session_id: sessionId, participant_id: participantId, user_id: userId, score, track },
+      { onConflict: 'session_id,user_id,track' },
     )
     .select('*')
     .single();
@@ -56,12 +64,17 @@ export async function submitIcebreakerVote(
   return data as IcebreakerResponseRow;
 }
 
-export async function fetchMyIcebreakerVote(sessionId: string, userId: string) {
+export async function fetchMyIcebreakerVote(
+  sessionId: string,
+  userId: string,
+  track: TrackType,
+): Promise<IcebreakerResponseRow | null> {
   const { data, error } = await supabase
     .from('icebreaker_responses')
     .select('*')
     .eq('session_id', sessionId)
     .eq('user_id', userId)
+    .eq('track', track)
     .maybeSingle();
 
   if (error) throw new Error(`No se pudo leer el voto: ${error.message}`);
@@ -74,12 +87,13 @@ export async function submitAssessmentLevel(
   userId: string,
   practiceKey: PracticeKey,
   level: MaturityLevel,
+  track: TrackType,
 ): Promise<AssessmentResponseRow> {
   const { data, error } = await supabase
     .from('assessment_responses')
     .upsert(
-      { session_id: sessionId, participant_id: participantId, user_id: userId, practice_key: practiceKey, level },
-      { onConflict: 'session_id,user_id,practice_key' },
+      { session_id: sessionId, participant_id: participantId, user_id: userId, practice_key: practiceKey, level, track },
+      { onConflict: 'session_id,user_id,practice_key,track' },
     )
     .select('*')
     .single();
@@ -88,12 +102,17 @@ export async function submitAssessmentLevel(
   return data as AssessmentResponseRow;
 }
 
-export async function fetchMyAssessmentResponses(sessionId: string, userId: string) {
+export async function fetchMyAssessmentResponses(
+  sessionId: string,
+  userId: string,
+  track: TrackType,
+): Promise<AssessmentResponseRow[]> {
   const { data, error } = await supabase
     .from('assessment_responses')
     .select('*')
     .eq('session_id', sessionId)
-    .eq('user_id', userId);
+    .eq('user_id', userId)
+    .eq('track', track);
 
   if (error) throw new Error(`No se pudieron leer las respuestas: ${error.message}`);
   return (data ?? []) as AssessmentResponseRow[];

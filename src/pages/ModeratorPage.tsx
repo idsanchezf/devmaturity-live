@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAnonUser } from '@/hooks/useAnonUser';
-import { useSessionByCode, createSession, updateSessionActivity } from '@/hooks/useSession';
+import { useSessionByCode, createSession, updateSessionActivity, updateSessionTrack } from '@/hooks/useSession';
 import { useRealtimeTable } from '@/hooks/useRealtimeTable';
 import { ModeratorGate } from '@/components/moderator/ModeratorGate';
 import { isModeratorUnlocked } from '@/lib/auth';
@@ -8,7 +8,7 @@ import { CreateSessionScreen } from '@/components/moderator/CreateSessionScreen'
 import { ModeratorDashboard } from '@/components/moderator/ModeratorDashboard';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import { ErrorBanner } from '@/components/common/ErrorBanner';
-import { ActivityState, ParticipantRow, IcebreakerResponseRow, AssessmentResponseRow } from '@/types/domain';
+import { ActivityState, ParticipantRow, IcebreakerResponseRow, AssessmentResponseRow, TrackType } from '@/types/domain';
 
 const LAST_CODE_KEY = 'dml_moderator_last_code';
 
@@ -34,8 +34,6 @@ export function ModeratorPage() {
   );
 
   useEffect(() => {
-    // Si el código guardado no existe o pertenece a otra identidad anónima
-    // (otro navegador), descartarlo para no dejar al moderador atascado.
     if (!authLoading && !sessionLoading && code && (notFound || (session && !isOwner))) {
       localStorage.removeItem(LAST_CODE_KEY);
       setCode(null);
@@ -58,6 +56,14 @@ export function ModeratorPage() {
     async (activity: ActivityState) => {
       if (!session) return;
       await updateSessionActivity(session.id, activity);
+    },
+    [session],
+  );
+
+  const handleChangeTrack = useCallback(
+    async (track: TrackType) => {
+      if (!session) return;
+      await updateSessionTrack(session.id, track);
     },
     [session],
   );
@@ -97,6 +103,7 @@ export function ModeratorPage() {
       icebreakerResponses={icebreakerResponses}
       assessmentResponses={assessmentResponses}
       onChangeActivity={handleChangeActivity}
+      onChangeTrack={handleChangeTrack}
     />
   );
 }

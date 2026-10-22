@@ -1,17 +1,20 @@
 import { useMemo, useState } from 'react';
-import { PRACTICES } from '@/data/practices';
-import { AssessmentResponseRow, MaturityLevel, PracticeKey } from '@/types/domain';
+import { TRACKS } from '@/data/practices';
+import { AssessmentResponseRow, MaturityLevel, PracticeKey, TrackType } from '@/types/domain';
 import { PracticeCard } from './PracticeCard';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ErrorBanner } from '@/components/common/ErrorBanner';
 
 interface AssessmentCarouselProps {
   initialResponses: AssessmentResponseRow[];
+  track: TrackType;
   onAnswer: (practiceKey: PracticeKey, level: MaturityLevel) => Promise<void>;
   onFinish: () => void;
 }
 
-export function AssessmentCarousel({ initialResponses, onAnswer, onFinish }: AssessmentCarouselProps) {
+export function AssessmentCarousel({ initialResponses, track, onAnswer, onFinish }: AssessmentCarouselProps) {
+  const practices = TRACKS[track].practices;
+
   const initialMap = useMemo(() => {
     const map: Partial<Record<PracticeKey, MaturityLevel>> = {};
     initialResponses.forEach((r) => {
@@ -25,9 +28,9 @@ export function AssessmentCarousel({ initialResponses, onAnswer, onFinish }: Ass
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const practice = PRACTICES[index];
+  const practice = practices[index];
   const answeredCount = Object.keys(answers).length;
-  const isLast = index === PRACTICES.length - 1;
+  const isLast = index === practices.length - 1;
 
   const handleSelect = async (level: MaturityLevel) => {
     setSaving(true);
@@ -39,7 +42,7 @@ export function AssessmentCarousel({ initialResponses, onAnswer, onFinish }: Ass
         if (isLast) {
           onFinish();
         } else {
-          setIndex((i) => Math.min(i + 1, PRACTICES.length - 1));
+          setIndex((i) => Math.min(i + 1, practices.length - 1));
         }
       }, 220);
     } catch (err) {
@@ -53,7 +56,7 @@ export function AssessmentCarousel({ initialResponses, onAnswer, onFinish }: Ass
     <div className="flex min-h-screen flex-col px-4 py-6">
       <div className="mx-auto w-full max-w-md flex-1">
         <div className="mb-5 flex items-center gap-2">
-          {PRACTICES.map((p, i) => (
+          {practices.map((p, i) => (
             <div
               key={p.key}
               className={`h-1.5 flex-1 rounded-full transition ${
@@ -67,7 +70,7 @@ export function AssessmentCarousel({ initialResponses, onAnswer, onFinish }: Ass
           <PracticeCard
             practice={practice}
             index={index}
-            total={PRACTICES.length}
+            total={practices.length}
             selected={answers[practice.key] ?? null}
             onSelect={handleSelect}
           />
@@ -88,11 +91,11 @@ export function AssessmentCarousel({ initialResponses, onAnswer, onFinish }: Ass
             <ChevronLeft size={18} /> Anterior
           </button>
           <p className="font-mono text-xs text-slate-500">
-            {answeredCount}/{PRACTICES.length} respondidas
+            {answeredCount}/{practices.length} respondidas
           </p>
           <button
             disabled={isLast || saving}
-            onClick={() => setIndex((i) => Math.min(PRACTICES.length - 1, i + 1))}
+            onClick={() => setIndex((i) => Math.min(practices.length - 1, i + 1))}
             className="tap-highlight-none flex items-center gap-1 rounded-lg px-3 py-2 text-sm text-slate-400 disabled:opacity-30"
           >
             Siguiente <ChevronRight size={18} />
